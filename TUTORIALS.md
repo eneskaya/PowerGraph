@@ -1,6 +1,6 @@
 # GraphLab PowerGraph Tutorials
 
-##Table of Contents
+## Table of Contents
 * [Deploying on AWS EC2 Cluster](#ec2)
 * [Deploying in a Cluster](#cluster)
 * [Deploying on a single multicore machine](#multicore)
@@ -124,6 +124,7 @@ In order for mpirsync to run properly all machines must have all network ports o
 ## Step 2a: Run PageRank on a synthetic graph
 
 This step runs the [PageRank](http://en.wikipedia.org/wiki/PageRank) algorithm on a synthetic generated graph of 100,000 nodes. It spawns two GraphLab mpi instances (-n 2).
+
 ```
 mpiexec -n 2 -hostfile ~/machines /path/to/pagerank --powerlaw=100000
 ```
@@ -142,9 +143,10 @@ wget http://www.select.cs.cmu.edu/code/graphlab/datasets/smallnetflix_mm.validat
 ```
 Now run GraphLab:
 
-````
+```
 mpiexec -n 2 -hostfile ~/machines /path/to/als  --matrix /some/ns/folder/smallnetflix/ --max_iter=3 --ncpus=1 --minval=1 --maxval=5 --predictions=out_file
 ```
+
 Where -n is the number of MPI nodes, and –ncpus is the number of deployed cores on each MPI node.
 
 machines is a file which includes a list of the machines you like to deploy on (each machine in a new line)
@@ -352,7 +354,7 @@ Here is a more detailed explanation of the benchmarking process. The benchmarkin
 5. In case you would like to benchmark a different algorithm, you can add an additional youralgo_demo section into the gl_ec2.py script.
 6. In case you would like to bechmark a regular instance, simply change the following line in gl_ec2.py from
 
-````
+```
 ./gl-ec2 -i ~/.ssh/amazonec2.pem -k amazonec2 -a hpc -s $MAX_SLAVES -t cc2.8xlarge launch hpctest
 ```
 to:
@@ -436,7 +438,7 @@ Previous to the program execution, the graph is first loaded into memory and par
 
 or
 
-````
+```
 --graph_opts="ingress=grid" # works for power of 2 sized cluster i.e. 2,4,8,.. machines
 ```
 
