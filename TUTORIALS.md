@@ -134,8 +134,8 @@ mpiexec -n 2 -hostfile ~/machines /path/to/pagerank --powerlaw=100000
 This step runs ALS (alternating least squares) in a cluster using small netflix susbset.
 It first downloads an anonymized, synthetic Netflix dataset from the web: [http://www.select.cs.cmu.edu/code/graphlab/datasets/smallnetflix_mm.train](http://www.select.cs.cmu.edu/code/graphlab/datasets/smallnetflix_mm.train) and [http://www.select.cs.cmu.edu/code/graphlab/datasets/smallnetflix_mm.validate](http://www.select.cs.cmu.edu/code/graphlab/datasets/smallnetflix_mm.validate), and runs 5 alternating least squares iterations. After the run is completed, you can login into any of the nodes and view the output files in the folder ~/graphlab/release/toolkits/collaborative_filtering/
 
- ```
- cd /some/ns/folder/
+```
+cd /some/ns/folder/
 mkdir smallnetflix
 cd smallnetflix/
 wget http://www.select.cs.cmu.edu/code/graphlab/datasets/smallnetflix_mm.train
@@ -223,6 +223,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Wrong FS: hdfs://
 ```
 
 **Solution:**
+
 Verify you classpath includes all hadoop required folders.
 
 ### Error:
@@ -242,7 +243,7 @@ or:
 Check that all machines have access to, or are using the same binary
 
 <a id="multicore"></a>
-#Deployment on a single multicore machine
+# Deployment on a single multicore machine
 
 ## Preliminaries:
 
