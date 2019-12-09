@@ -1,0 +1,49 @@
+version: '3.7'
+services:
+  master:
+    image: kayzaa/powergraph:pagerank
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8196M
+  worker1:
+    image: kayzaa/powergraph:pagerank
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8196M
+  worker2:
+    image: kayzaa/powergraph:pagerank
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8196M
+  worker3:
+    image: kayzaa/powergraph:pagerank
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8196M
+  worker4:
+    image: kayzaa/powergraph:pagerank
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8196M
+  worker5:
+    image: kayzaa/powergraph:pagerank
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 8196M
+
+
+volumes:
+  graphs:
+    driver: local
