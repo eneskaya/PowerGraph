@@ -1,0 +1,2 @@
+project(analytics)
+add_graphlab_executable(analytics graph_statistics.cpp)
