@@ -3347,7 +3347,7 @@ private:
   distributed_ingress_base<VertexData, EdgeData> *ingress_ptr;
 
   /** Buffered Exchange used by synchronize() */
-  buffered_exchange<std::pair<vertex_id_type, vertex_data_type>> vertex_exchange;
+  buffered_exchange<std::pair< vertex_id_type, vertex_data_type> > vertex_exchange;
 
   /** Buffered Exchange used by vertex sets */
   buffered_exchange<vertex_id_type> vset_exchange;
