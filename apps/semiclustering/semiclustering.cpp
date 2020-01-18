@@ -8,18 +8,9 @@ double C_MAX = 15;
 double V_MAX = 5;
 double F_B = 0.1;
 
-// The vertex data is just the pagerank value (a double)
-typedef semi_cluster_container vertex_data_type;
-
-// double for weight as edge data
-typedef double edge_data_type;
-
-// The graph type is determined by the vertex and edge data types
-typedef graphlab::distributed_graph<vertex_data_type, edge_data_type> graph_type;
-
 struct semi_cluster_container
 {
-  std::vector<std::pair<double, std::vector<graphlab::vertex_id_type>>> cluster_list;
+  std::vector<std::pair<double, std::vector<graphlab::vertex_id_type> > > cluster_list;
 
   void save(graphlab::oarchive &oarc) const
   {
@@ -31,7 +22,19 @@ struct semi_cluster_container
     iarc >> cluster_list;
   }
 
+  semi_cluster_container& operator+=(semi_cluster_container const& other) {
+      return (*this);
+  }
 };
+
+// The vertex data is just the pagerank value (a double)
+typedef semi_cluster_container vertex_data_type;
+
+// double for weight as edge data
+typedef double edge_data_type;
+
+// The graph type is determined by the vertex and edge data types
+typedef graphlab::distributed_graph<vertex_data_type, edge_data_type> graph_type;
 
 /*
  * A simple function used by graph.transform_vertices(init_vertex);
@@ -42,52 +45,12 @@ void init_vertex(graph_type::vertex_type &vertex)
   vertex.data();
 }
 
-class pagerank : public graphlab::ivertex_program<graph_type, std::vector<semi_cluster>>
+class semiclustering : 
+    public graphlab::ivertex_program<graph_type, semi_cluster_container>, 
+    public graphlab::IS_POD_TYPE
 {
-
-  double last_change;
-
-public:
-  /**
-   * Gather all edges.
-   */
-  edge_dir_type gather_edges(icontext_type &context,
-                             const vertex_type &vertex) const
-  {
-    return graphlab::ALL_EDGES;
-  }
-
-  /* Gather the weighted rank of the adjacent page   */
-  double gather(icontext_type &context, const vertex_type &vertex,
-                edge_type &edge) const
-  {
-  }
-
-  /* Use the total rank of adjacent pages to update this page */
-  void apply(icontext_type &context, vertex_type &vertex,
-             const gather_type &total)
-  {
-  }
-
-  /* The scatter edges depend on whether the pagerank has converged */
-  edge_dir_type scatter_edges(icontext_type &context,
-                              const vertex_type &vertex) const
-  {
-  }
-
-  /* The scatter function just signal adjacent pages */
-  void scatter(icontext_type &context, const vertex_type &vertex,
-               edge_type &edge) const
-  {
-  }
-
-  void save(graphlab::oarchive &oarc) const
-  {
-  }
-
-  void load(graphlab::iarchive &iarc)
-  {
-  }
+    public:
+        void apply(icontext_type& context, vertex_type& vertex, const gather_type& total) {}
 };
 
 int main(int argc, char **argv)
@@ -98,7 +61,7 @@ int main(int argc, char **argv)
   global_logger().set_log_level(LOG_INFO);
 
   // Parse command line options -----------------------------------------------
-  graphlab::command_line_options clopts("PageRank algorithm.");
+  graphlab::command_line_options clopts("SemiClustering algorithm.");
   std::string graph_dir;
   std::string format = "adj";
   std::string exec_type = "synchronous";
@@ -116,13 +79,13 @@ int main(int argc, char **argv)
   clopts.attach_option("powerlaw", powerlaw,
                        "Generate a synthetic powerlaw out-degree graph. ");
 
-  clopts.attach_option("c_max", C_MAX, "");
-  clopts.attach_option("v_max", V_MAX, "");
-  clopts.attach_option("f_b", F_B, "");
+  clopts.attach_option("c_max", C_MAX, "The c_max value");
+  clopts.attach_option("v_max", V_MAX, "The v_max value");
+  clopts.attach_option("f_b", F_B, "The fB value");
 
   std::string saveprefix;
   clopts.attach_option("saveprefix", saveprefix,
-                       "If set, will save the resultant pagerank to a "
+                       "If set, will save the resultant semiclusters to a "
                        "sequence of files with prefix saveprefix");
 
   if (!clopts.parse(argc, argv))
@@ -161,7 +124,7 @@ int main(int argc, char **argv)
   graph.transform_vertices(init_vertex);
 
   // Running The Engine -------------------------------------------------------
-  graphlab::omni_engine<pagerank> engine(dc, graph, exec_type, clopts);
+  graphlab::omni_engine<semiclustering> engine(dc, graph, exec_type, clopts);
   engine.signal_all();
   engine.start();
   const double runtime = engine.elapsed_seconds();
