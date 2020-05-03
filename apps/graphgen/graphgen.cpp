@@ -35,12 +35,14 @@ int main(int argc, char** argv) {
   // Parse command line options -----------------------------------------------
   graphlab::command_line_options clopts("GraphGen");
   std::string save_prefix;
+  size_t weighted = 0;
   size_t powerlaw = 0;
 
   clopts.attach_option("save", save_prefix, "File name to save");
   clopts.add_positional("save");
 
   clopts.attach_option("powerlaw", powerlaw, "Generate a synthetic powerlaw out-degree graph. ");
+  clopts.attach_option("weighted", weighted, "1 = Generate Random weights");
 
   if (!clopts.parse(argc, argv))
   {
@@ -57,7 +59,9 @@ int main(int argc, char** argv) {
   // must call finalize before querying the graph
   graph.finalize();
   // Generate random weights for the edges
-  graph.transform_edges(init_edge);
+  if (weighted == 1) {
+    graph.transform_edges(init_edge);
+  }
 
   dc.cout() << "#vertices: " << graph.num_vertices() << " #edges:" << graph.num_edges() << std::endl;
 

@@ -1,7 +1,7 @@
 #include <graphlab.hpp>
 
 // The vertex data is just the pagerank value (a float)
-typedef std::pair<int, int> vertex_data_type;
+typedef graphlab::empty vertex_data_type;
 
 // There is no edge data in the pagerank application
 typedef graphlab::empty edge_data_type;
@@ -9,19 +9,10 @@ typedef graphlab::empty edge_data_type;
 // The graph type is determined by the vertex and edge data types
 typedef graphlab::distributed_graph<vertex_data_type, edge_data_type> graph_type;
 
-/*
- * A simple function used by graph.transform_vertices(init_vertex);
- * to initialize the vertex data.
- */
-void init_vertex(graph_type::vertex_type& vertex) {
-    std::pair<int, int> e(vertex.num_in_edges(), vertex.num_out_edges());
-    vertex.data() = e;
-}
-
 struct concomp_writer {
     std::string save_vertex(graph_type::vertex_type v) {
         std::stringstream strm;
-        strm << v.id() << "," << v.data().first << "," << v.data().second << "\n";
+        strm << v.id() << ";" << v.num_in_edges() << ";" << v.num_out_edges() << std::endl;
         return strm.str();
     }
     std::string save_edge(graph_type::edge_type e) { return ""; }
@@ -61,20 +52,13 @@ int main(int argc, char** argv) {
    // must call finalize before querying the graph
    graph.finalize();
 
-   graph.transform_vertices(init_vertex);
-
    dc.cout() << "#vertices: " << graph.num_vertices() << " #edges:" << graph.num_edges() << std::endl;
-
-//    graphlab::omni_engine<concomp> engine(dc, graph, "synchronous", clopts);
-//    engine.signal_all();
-
-//    engine.start();
-
-//    const float runtime = engine.elapsed_seconds();
-//    dc.cout() << "Finished Running engine in " << runtime << " seconds." << std::endl;
 
    graph.save(save_prefix, concomp_writer(),
                false,    // do not gzip
                true,     // save vertices
                false);   // do not save edges
+
+  graphlab::mpi_tools::finalize();
+  return EXIT_SUCCESS;
 }

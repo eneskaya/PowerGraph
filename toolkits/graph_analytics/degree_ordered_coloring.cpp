@@ -137,7 +137,7 @@ public:
                      edge_type& edge) const {
     set_union_gather gather;
     color_type other_color = edge.source().id() == vertex.id() ?
-                                 edge.target().data().color: edge.source().data().color;
+                                 edge.target().data().color : edge.source().data().color;
 
     gather.colors.insert(other_color);
     return gather;

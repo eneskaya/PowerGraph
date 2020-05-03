@@ -182,6 +182,21 @@ double pagerank_sum(graph_type::vertex_type v)
   return v.data();
 }
 
+bool edge_list_parser(graph_type& graph, const std::string& filename, const std::string& line)
+{
+  if (line.empty()) return true;
+
+  int source, target;
+  edge_data_type weight;
+
+  if (sscanf(line.c_str(), "%i  %i  %f", &source, &target, &weight) < 3) {
+    return false;
+  } else {
+    graph.add_edge(source, target);
+    return true;
+  }
+}
+
 int main(int argc, char **argv)
 {
   // Initialize control plain using mpi
@@ -194,6 +209,11 @@ int main(int argc, char **argv)
   std::string graph_dir;
   std::string format = "adj";
   std::string exec_type = "synchronous";
+
+  size_t custom_parsing = 0;
+
+  clopts.attach_option("parse", custom_parsing, "Parse with custom function.");
+
   clopts.attach_option("graph", graph_dir,
                        "The graph file.  If none is provided "
                        "then a toy graph will be created");
@@ -249,7 +269,12 @@ int main(int argc, char **argv)
   else if (graph_dir.length() > 0)
   { // Load the graph from a file
     dc.cout() << "Loading graph in format: " << format << std::endl;
-    graph.load_format(graph_dir, format);
+
+    if (custom_parsing == 1) {
+      graph.load(graph_dir, edge_list_parser);
+    } else {
+      graph.load_format(graph_dir, format);
+    }
   }
   else
   {
