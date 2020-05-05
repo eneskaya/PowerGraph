@@ -10,7 +10,8 @@ double F_B = 0.1;
 
 size_t ITERATIONS = 5;
 
-class SemiCluster {
+class SemiCluster
+{
 public:
   SemiCluster() : semiScore(1.0), members(){};
 
@@ -37,7 +38,7 @@ public:
      * If yes, the weight of that edge is added to innerWeight.
      * If no, the weight of that edge is added to outerWeight.
      */
-  bool addToCluster(graphlab::vertex_id_type newVertexId, std::vector<std::pair<graphlab::vertex_id_type, float> > edges)
+  bool addToCluster(graphlab::vertex_id_type newVertexId, std::vector<std::pair<graphlab::vertex_id_type, float>> edges)
   {
     // abort if Vmax is reached
     if (members.size() == V_MAX || std::find(members.begin(), members.end(), newVertexId) != members.end())
@@ -48,17 +49,21 @@ public:
 
     members.push_back(newVertexId);
 
-    for (std::pair<int, float> e : edges) {
-        int u = e.first;
-        float weight = e.second;
+    for (std::pair<int, float> e : edges)
+    {
+      int u = e.first;
+      float weight = e.second;
 
-        // If u is not in the in the members list, it is an outEdge (outside of cluster)
-        // https://stackoverflow.com/questions/571394/how-to-find-out-if-an-item-is-present-in-a-stdvector
-        if (std::find(members.begin(), members.end(), u) == members.end()) {
-            outerWeight += weight;
-        } else {
-            innerWeight += weight;
-        }
+      // If u is not in the in the members list, it is an outEdge (outside of cluster)
+      // https://stackoverflow.com/questions/571394/how-to-find-out-if-an-item-is-present-in-a-stdvector
+      if (std::find(members.begin(), members.end(), u) == members.end())
+      {
+        outerWeight += weight;
+      }
+      else
+      {
+        innerWeight += weight;
+      }
     }
 
     // compute S_c
@@ -80,16 +85,18 @@ public:
   }
 };
 
-struct SemiClusterContainer {
+struct SemiClusterContainer
+{
   SemiClusterContainer() : clusters(), neighbors(){};
 
-  SemiClusterContainer(const SemiClusterContainer &rhs) {
-      clusters = rhs.clusters;
-      neighbors = {};
+  SemiClusterContainer(const SemiClusterContainer &rhs)
+  {
+    clusters = rhs.clusters;
+    neighbors = {};
   }
 
   std::vector<SemiCluster> clusters;
-  std::vector<std::pair<graphlab::vertex_id_type,float>> neighbors;
+  std::vector<std::pair<graphlab::vertex_id_type, float>> neighbors;
 
   void save(graphlab::oarchive &oarc) const
   {
@@ -101,20 +108,23 @@ struct SemiClusterContainer {
     iarc >> clusters;
   }
 
-  SemiClusterContainer& operator+=(SemiClusterContainer const &other)
+  SemiClusterContainer &operator+=(SemiClusterContainer const &other)
   {
-    for (SemiCluster c : other.clusters) {
+    for (SemiCluster c : other.clusters)
+    {
       clusters.push_back(c);
     }
-    for (std::pair<graphlab::vertex_id_type,float> e : other.neighbors) {
+    for (std::pair<graphlab::vertex_id_type, float> e : other.neighbors)
+    {
       neighbors.push_back(e);
     }
 
     std::sort(clusters.begin(), clusters.end());
     std::reverse(clusters.begin(), clusters.end());
 
-    if (clusters.size() > V_MAX) {
-        clusters.resize(V_MAX);
+    if (clusters.size() > V_MAX)
+    {
+      clusters.resize(V_MAX);
     }
 
     return *this;
@@ -127,7 +137,8 @@ typedef SemiClusterContainer gather_type;
 
 typedef graphlab::distributed_graph<vertex_data_type, edge_data_type> graph_type;
 
-void init_vertex(graph_type::vertex_type &vertex) {
+void init_vertex(graph_type::vertex_type &vertex)
+{
   SemiCluster s;
   s.members.push_back(vertex.id());
 
@@ -137,19 +148,23 @@ void init_vertex(graph_type::vertex_type &vertex) {
   vertex.data() = sc;
 }
 
-std::string printCluster(SemiCluster const& data) {
-    std::stringstream out;
+std::string printCluster(SemiCluster const &data)
+{
+  std::stringstream out;
 
-    out << "score: " << data.semiScore << ", members: " << " {";
-    for (int m : data.members) {
-        out << " " << m << " ";
-    }
-    out <<  "} ";
+  out << "score: " << data.semiScore << ", members: "
+      << " {";
+  for (int m : data.members)
+  {
+    out << " " << m << " ";
+  }
+  out << "} ";
 
-    return out.str();
+  return out.str();
 }
 
-struct cluster_reducer {
+struct cluster_reducer
+{
   std::vector<SemiCluster> clusters;
   graph_type::vertex_id_type vertexId;
 
@@ -163,19 +178,23 @@ struct cluster_reducer {
     iarc >> clusters;
   }
 
-  static cluster_reducer start(const graph_type::vertex_type& v) {
+  static cluster_reducer start(const graph_type::vertex_type &v)
+  {
     cluster_reducer r;
     r.vertexId = v.id();
 
-    for (SemiCluster c : v.data().clusters) {
+    for (SemiCluster c : v.data().clusters)
+    {
       r.clusters.push_back(c);
     }
 
     return r;
   }
 
-  cluster_reducer& operator+=(const cluster_reducer& other) {
-    for (SemiCluster c : other.clusters) {
+  cluster_reducer &operator+=(const cluster_reducer &other)
+  {
+    for (SemiCluster c : other.clusters)
+    {
       clusters.push_back(c);
     }
 
@@ -184,7 +203,8 @@ struct cluster_reducer {
 };
 
 // The factorized vertex program
-class semiclustering : public graphlab::ivertex_program<graph_type, gather_type>, public graphlab::IS_POD_TYPE {
+class semiclustering : public graphlab::ivertex_program<graph_type, gather_type>, public graphlab::IS_POD_TYPE
+{
 public:
   bool has_changed;
 
@@ -201,14 +221,19 @@ public:
     gather_type sc;
     std::pair<graphlab::vertex_id_type, float> n;
 
-    if (edge.target().id() == vertex.id()) {
+    if (edge.target().id() == vertex.id())
+    {
       n.first = edge.source().id();
-      for (SemiCluster c : edge.source().data().clusters) {
+      for (SemiCluster c : edge.source().data().clusters)
+      {
         sc.clusters.push_back(c);
       }
-    } else {
+    }
+    else
+    {
       n.first = edge.target().id();
-      for (SemiCluster c : edge.target().data().clusters) {
+      for (SemiCluster c : edge.target().data().clusters)
+      {
         sc.clusters.push_back(c);
       }
     }
@@ -222,26 +247,19 @@ public:
   // Update the cluster list of this vertex
   void apply(icontext_type &context, vertex_type &vertex, const gather_type &total)
   {
-    // std::cout << "Vertex " << vertex.id() << " has received # clusters " << total.clusters.size() << std::endl;
-    // std::cout << "Vertex " << vertex.id() << " has # neighbors " << total.neighbors.size() << std::endl;
-
     has_changed = false;
 
-    for (SemiCluster c : total.clusters) {
+    for (SemiCluster c : total.clusters)
+    {
       SemiCluster nC(c);
-      has_changed = nC.addToCluster(vertex.id(), total.neighbors);
-      if (has_changed) {
-        vertex.data().clusters.push_back(nC);
-      }
+      nC.addToCluster(vertex.id(), total.neighbors);
+      vertex.data().clusters.push_back(nC);
     }
   }
 
   edge_dir_type scatter_edges(icontext_type &context, const vertex_type &vertex) const
   {
-    if (has_changed)
-      return graphlab::ALL_EDGES;
-
-    return graphlab::NO_EDGES;
+    return graphlab::ALL_EDGES;
   }
 
   void scatter(icontext_type &context, const vertex_type &vertex, edge_type &edge) const
@@ -250,16 +268,20 @@ public:
   }
 };
 
-bool edge_list_parser(graph_type& graph, const std::string& filename, const std::string& line)
+bool edge_list_parser(graph_type &graph, const std::string &filename, const std::string &line)
 {
-  if (line.empty()) return true;
+  if (line.empty())
+    return true;
 
   int source, target;
   edge_data_type weight;
 
-  if (sscanf(line.c_str(), "%i  %i  %f", &source, &target, &weight) < 3) {
+  if (sscanf(line.c_str(), "%i  %i  %f", &source, &target, &weight) < 3)
+  {
     return false;
-  } else {
+  }
+  else
+  {
     graph.add_edge(source, target, weight);
     return true;
   }
@@ -295,7 +317,8 @@ int main(int argc, char **argv)
                        "If set, will save the resultant semiclusters to a "
                        "sequence of files with prefix saveprefix");
 
-  if (!clopts.parse(argc, argv)) {
+  if (!clopts.parse(argc, argv))
+  {
     dc.cout() << "Error in parsing command line arguments." << std::endl;
     return EXIT_FAILURE;
   }
@@ -309,7 +332,7 @@ int main(int argc, char **argv)
     clopts.get_engine_args().set_option("max_iterations", ITERATIONS);
     clopts.get_engine_args().set_option("sched_allv", true);
   }
-  
+
   graph_type graph(dc, clopts);
 
   dc.cout() << "Loading graph in format: " << format << std::endl;
@@ -329,13 +352,16 @@ int main(int argc, char **argv)
   engine.start();
 
   // MapReduce to gather result
-  // std::vector<SemiCluster> all = graph.map_reduce_vertices<cluster_reducer>(cluster_reducer::start).clusters;
-  // std::sort(all.begin(), all.end());
-  // std::reverse(all.begin(), all.end());
+  std::vector<SemiCluster> all = graph.map_reduce_vertices<cluster_reducer>(cluster_reducer::start).clusters;
+  std::sort(all.begin(), all.end());
+  std::reverse(all.begin(), all.end());
 
-  // for (SemiCluster c : all) {
-  //   dc.cout() << printCluster(c) << std::endl;
-  // }
+  all.resize(C_MAX);
+
+  for (SemiCluster c : all)
+  {
+    dc.cout() << printCluster(c) << std::endl;
+  }
 
   const double runtime = engine.elapsed_seconds();
   dc.cout() << "Finished Running engine in " << runtime
@@ -345,7 +371,6 @@ int main(int argc, char **argv)
   graphlab::mpi_tools::finalize();
   return EXIT_SUCCESS;
 }
-
 
 // std::cout << "Vertex ID: " << vertex.id() << std::endl;
 // std::cout << "Edge Source: " << edge.source().id() << std::endl;
